@@ -1,0 +1,18 @@
+{
+  "name": "thu-info-vis",
+  "description": "Tsinghua university information visualization assignments assembly.",
+  "keywords": [
+    "vis",
+    "visualization",
+    "d3"
+  ],
+  "private": true,
+  "repository": "https://github.com/PTYin/thu-info-vis.git",
+  "workspaces": [
+    "packages/*"
+  ],
+  "devDependencies": {
+    "eslint": "^8.25.0",
+    "lerna": "^6.0.1"
+  }
+}

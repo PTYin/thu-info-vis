@@ -1,0 +1,6 @@
+# IDE Configuration
+.idea/
+.fleet/
+
+# Dependencies
+node_modules/
