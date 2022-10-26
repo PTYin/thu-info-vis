@@ -19,9 +19,6 @@ const buildTree = (city, fatherD3Node) => {
   return d3Node
 }
 const tree = buildTree(china, null)
-// Constrain subtrees of root to be 5
-tree.children = tree.children.slice(0, 1)
-tree.children.push({name: 'test', children: Array(1000).fill(1)})
 const root = d3.hierarchy(tree)
 console.log('root', root)
 const {svg, points} = voronoiTreemap(root, {planeWidth: 960, planeHeight: 500})
