@@ -4,8 +4,8 @@ import * as d3 from 'd3'
 import * as d3Plugin from 'd3-weighted-voronoi'
 
 export default function voronoiTreemap(root, {
-  planeWidth = 1280,
-  planeHeight = 800,
+  planeWidth = 960,
+  planeHeight = 500,
   aDesired,
   errorThreshold = 1e-3,
   maxIteration = 100
@@ -38,10 +38,11 @@ export default function voronoiTreemap(root, {
     }
   })
 
-  const strokeMin = 2, strokeMax = 10, strokeLevels = root.height, strokeDelta = (strokeMax - strokeMin) / strokeLevels
+  const strokeMin = 2, strokeMax = 8, strokeLevels = root.height, strokeDelta = (strokeMax - strokeMin) / strokeLevels
   const svg = d3.create('svg')
-    .attr('width', planeWidth)
-    .attr('height', planeHeight)
+    .attr('viewBox', `0 0 ${planeWidth} ${planeHeight}`)
+    .attr('width', '100%')
+    .attr('height', '90vh')
   const polygon = svg.append('g').selectAll('path').data(globalDiagram)
   polygon.enter().append('path')
     .attr('d', d => 'M' + d.join('L') + 'Z')
