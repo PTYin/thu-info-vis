@@ -4,14 +4,65 @@ import * as d3 from 'd3'
 import * as d3Plugin from 'd3-weighted-voronoi'
 
 export default function voronoiTreemap(root, {
-  planeWidth = 960,
-  planeHeight = 500,
+  planeWidth = 1280,
+  planeHeight = 800,
   aDesired,
   errorThreshold = 1e-3,
-  maxIteration = 1000
+  maxIteration = 100
 }) {
-  const planeArea = planeWidth * planeHeight
-  const n = root.children.length
+  let globalDiagram = [], firstRecursion = true,
+    clippedPolygonMap = new Map(), points
+  // Width first search
+  root.each(node => {
+    const result = clippedVoronoiTreemap(node, {
+      clippedPolygon: firstRecursion ?
+        [[0, 0], [0, planeHeight], [planeWidth, planeHeight], [planeWidth, 0]] :
+        clippedPolygonMap.get(node),
+      planeWidth,
+      planeHeight,
+      aDesired,
+      errorThreshold,
+      maxIteration
+    })
+    if (result) {
+      globalDiagram = globalDiagram.concat(result.weightedVoronoi)
+      if (firstRecursion) {
+        points = result.points
+        firstRecursion = false
+      }
+      for (let polygon of result.weightedVoronoi) {
+        const i = polygon.site.originalObject.id
+        polygon.depth = node.children[i].depth
+        clippedPolygonMap.set(node.children[i], polygon)
+      }
+    }
+  })
+
+  const strokeMin = 2, strokeMax = 10, strokeLevels = root.height, strokeDelta = (strokeMax - strokeMin) / strokeLevels
+  const svg = d3.create('svg')
+    .attr('width', planeWidth)
+    .attr('height', planeHeight)
+  const polygon = svg.append('g').selectAll('path').data(globalDiagram)
+  polygon.enter().append('path')
+    .attr('d', d => 'M' + d.join('L') + 'Z')
+    .attr('stroke-width', d => Math.max(strokeMax - strokeDelta * d.depth, strokeMin) + 'px')
+    .attr('stroke', 'steelblue')
+    .attr('fill', 'none')
+  polygon.exit().remove()
+  return {svg, points: points}
+}
+
+function clippedVoronoiTreemap(root, {
+  clippedPolygon,
+  planeWidth,
+  planeHeight,
+  aDesired,
+  errorThreshold,
+  maxIteration
+}) {
+  const clipArea = d3.polygonArea(clippedPolygon)
+  const n = root.children && root.children.length
+  if (!n) return
   // If aDesired is not specified, then initialize it as
   // the proportion for area size of each node divided by
   // total area size.
@@ -19,18 +70,22 @@ export default function voronoiTreemap(root, {
     aDesired = []
     let total = 0
     for (let child of root.children) {
-      const areaSize = 1 + (child.descendants().length || 0)
+      const areaSize = child.descendants().length
       aDesired.push(areaSize)
       total += areaSize
     }
     aDesired = aDesired.map(a => a / total)
   }
   let points = []
-  // Randomly initialize n points.
+  // Randomly initialize n points in clipped polygon.
   const randomX = d3.randomUniform(planeWidth), randomY = d3.randomUniform(planeHeight)
-  for (let i = 0; i < n; i++)
-    // points.push([d3.randomUniform(planeWidth)(), d3.randomUniform(planeHeight)()])
-    points.push({id: i, pos: [randomX(), randomY()]})
+  for (let i = 0; i < n; i++) {
+    let pos
+    do {
+      pos = [randomX(), randomY()]
+    } while (!d3.polygonContains(clippedPolygon, pos))
+    points.push({id: i, pos})
+  }
   const weights = Array(n).fill(1)
 
   let stable = true, iteration = 0, weightedVoronoi
@@ -38,7 +93,7 @@ export default function voronoiTreemap(root, {
     .x(point => point.pos[0])
     .y(point => point.pos[1])
     .weight(point => weights[point.id])
-    .clip([[0, 0], [0, planeHeight], [planeWidth, planeHeight], [planeWidth, 0]])
+    .clip(clippedPolygon)
   do {
     weightedVoronoi = computeWeightedVoronoi(points)
     stable = true
@@ -46,7 +101,7 @@ export default function voronoiTreemap(root, {
     for (let polygon of weightedVoronoi) {
       const i = polygon.site.originalObject.id
       const polygonArea = d3.polygonArea(polygon)
-      a[i] = polygonArea / planeArea
+      a[i] = polygonArea / clipArea
       if (Math.abs(a[i] - aDesired[i]) >= errorThreshold)
         stable = false
     }
@@ -84,22 +139,7 @@ export default function voronoiTreemap(root, {
         }
       }
     }
-    console.log('iteration')
     moveGenerators()
   } while (!stable && iteration++ < maxIteration)
-
-  const svg = d3.create('svg')
-    .attr('viewBox', '0 0 960 500')
-    .attr('width', planeWidth)
-    .attr('height', planeHeight)
-  const polygon = svg.append('g').selectAll('path').data(weightedVoronoi)
-  polygon.enter().append('path')
-    .attr('d', d => 'M' + d.join('L') + 'Z')
-    .attr('stroke-width', 1.5)
-    .attr('stroke', 'steelblue')
-    .attr('fill', 'none')
-    // .attr('fill', d => d3.scaleLinear().domain([0, root.height]).range(['red', 'pink'])(d.depth))
-    // .attr('fill-opacity', d => (d.depth < max_depth && d.children) ? 0 : 1)
-  polygon.exit().remove()
-  return {svg, points}
+  return {weightedVoronoi, points}
 }

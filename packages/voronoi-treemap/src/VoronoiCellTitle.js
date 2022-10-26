@@ -9,6 +9,7 @@ export default function voronoiCellTitle(titles, points) {
   for (let i = 0; i < titles.length && i < points.length; i++) {
     const [x, y] = points[i].pos
     container.append('p')
+      .style('background-color', 'rgba(255,255,255,0.5)')
       .style('position', 'absolute')
       .style('left', `${x - 10}px`)
       .style('top', `${y - 20}px`)

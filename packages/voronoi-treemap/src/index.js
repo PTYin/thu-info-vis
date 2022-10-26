@@ -20,8 +20,7 @@ const buildTree = (city, fatherD3Node) => {
 }
 const tree = buildTree(china, null)
 const root = d3.hierarchy(tree)
-console.log('root', root)
-const {svg, points} = voronoiTreemap(root, {planeWidth: 960, planeHeight: 500})
+const {svg, points} = voronoiTreemap(root, {})
 const cellTitleContainer = voronoiCellTitle(root.children.map(child => child.data.name), points)
 d3.select('body').append(() => svg.node())
 d3.select('body').append(() => cellTitleContainer.node())
