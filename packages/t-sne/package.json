@@ -31,9 +31,6 @@
     "@tensorflow/tfjs": "^4.1.0",
     "@tensorflow/tfjs-backend-wasm": "^4.1.0",
     "d3": "^7.6.1",
-    "mathjs": "^11.4.0",
-    "nanobar": "^0.4.2",
-    "numjs": "^0.16.1",
-    "tsne-js": "^1.0.3"
+    "nanobar": "^0.4.2"
   }
 }
