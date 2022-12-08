@@ -4,3 +4,6 @@
 
 # Dependencies
 node_modules/
+
+# Production
+packages/*/dist/

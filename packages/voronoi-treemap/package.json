@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "name": "my-webpack-project",
-  "description": "My webpack project",
+  "name": "voronoi-treemap",
+  "description": "China districts visualization using Voronoi Treemap",
   "scripts": {
     "build": "webpack --mode=production --node-env=production",
     "build:dev": "webpack --mode=development",
